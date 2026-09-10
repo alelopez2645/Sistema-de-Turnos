@@ -56,10 +56,29 @@
                                 @if ($turno->recepcionado_en)
                                     Recepcionado el {{ $turno->recepcionado_en->format('d/m/Y H:i') }}
                                     @if ($turno->observaciones_recepcion) ("{{ $turno->observaciones_recepcion }}") @endif
+                                    @if (!empty($turno->imagenes_recepcion))
+                                        <div class="d-flex gap-2 mt-1 flex-wrap">
+                                            @foreach ($turno->imagenesRecepcionUrls() as $url)
+                                                <a href="{{ $url }}" target="_blank">
+                                                    <img src="{{ $url }}" alt="Imagen de recepción" style="width:40px;height:40px;object-fit:cover;border-radius:.4rem;border:1px solid var(--ies-border);">
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 @endif
                                 @if ($turno->entregado_en)
-                                    <br>Entregado el {{ $turno->entregado_en->format('d/m/Y H:i') }}
+                                    <div class="{{ $turno->recepcionado_en ? 'mt-2' : '' }}">Entregado el {{ $turno->entregado_en->format('d/m/Y H:i') }}
                                     @if ($turno->observaciones_entrega) ("{{ $turno->observaciones_entrega }}") @endif
+                                    </div>
+                                    @if (!empty($turno->imagenes_entrega))
+                                        <div class="d-flex gap-2 mt-1 flex-wrap">
+                                            @foreach ($turno->imagenesEntregaUrls() as $url)
+                                                <a href="{{ $url }}" target="_blank">
+                                                    <img src="{{ $url }}" alt="Imagen de entrega" style="width:40px;height:40px;object-fit:cover;border-radius:.4rem;border:1px solid var(--ies-border);">
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 @endif
                             </div>
                         @endif

@@ -40,8 +40,10 @@ class Turno extends Model
         'terminos_aceptados_en',
         'terminos_version',
         'observaciones_recepcion',
+        'imagenes_recepcion',
         'recepcionado_en',
         'observaciones_entrega',
+        'imagenes_entrega',
         'entregado_en',
     ];
 
@@ -55,6 +57,8 @@ class Turno extends Model
             'terminos_aceptados_en' => 'datetime',
             'recepcionado_en' => 'datetime',
             'entregado_en' => 'datetime',
+            'imagenes_recepcion' => 'array',
+            'imagenes_entrega' => 'array',
         ];
     }
 
@@ -179,5 +183,25 @@ class Turno extends Model
         }
 
         return \Illuminate\Support\Facades\Storage::disk('public')->url($this->nota_formal_path);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function imagenesRecepcionUrls(): array
+    {
+        return collect($this->imagenes_recepcion ?? [])
+            ->map(fn ($path) => \Illuminate\Support\Facades\Storage::disk('public')->url($path))
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function imagenesEntregaUrls(): array
+    {
+        return collect($this->imagenes_entrega ?? [])
+            ->map(fn ($path) => \Illuminate\Support\Facades\Storage::disk('public')->url($path))
+            ->all();
     }
 }

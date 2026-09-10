@@ -59,35 +59,49 @@
                                     Cancelar
                                 </button>
                             @endif
+
+                            @if ($turno->puedeRecepcionarse())
+                                <button class="btn btn-sm btn-outline-success" wire:click="abrirRecepcion({{ $turno->id }})">
+                                    Registrar recepción
+                                </button>
+                            @endif
+
+                            @if ($turno->puedeEntregarse())
+                                <button class="btn btn-sm btn-outline-success" wire:click="abrirEntrega({{ $turno->id }})">
+                                    Registrar entrega
+                                </button>
+                            @endif
                         </div>
 
-                        @if ($turno->puedeRecepcionarse())
-                            <div class="border-top mt-3 pt-3">
-                                <label class="form-label small">Registrar recepción del espacio: ¿en qué condiciones lo recibís?</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" wire:model="observacionesRecepcionPorTurno.{{ $turno->id }}" placeholder="Ej: todo en orden, proyector funcionando...">
-                                    <button class="btn btn-outline-success" wire:click="recepcionar({{ $turno->id }})">Registrar recepción</button>
-                                </div>
-                            </div>
-                        @elseif ($turno->recepcionado_en)
+                        @if ($turno->recepcionado_en)
                             <div class="small text-muted mt-2">
                                 Recepcionado el {{ $turno->recepcionado_en->format('d/m/Y H:i') }}
                                 @if ($turno->observaciones_recepcion) — "{{ $turno->observaciones_recepcion }}" @endif
+                                @if (!empty($turno->imagenes_recepcion))
+                                    <div class="d-flex gap-2 mt-1 flex-wrap">
+                                        @foreach ($turno->imagenesRecepcionUrls() as $url)
+                                            <a href="{{ $url }}" target="_blank">
+                                                <img src="{{ $url }}" alt="Imagen de recepción" style="width:48px;height:48px;object-fit:cover;border-radius:.4rem;border:1px solid var(--ies-border);">
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
                         @endif
 
-                        @if ($turno->puedeEntregarse())
-                            <div class="border-top mt-3 pt-3">
-                                <label class="form-label small">Registrar entrega del espacio: ¿en qué condiciones lo dejás?</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" wire:model="observacionesEntregaPorTurno.{{ $turno->id }}" placeholder="Ej: se devolvió limpio, sin novedades...">
-                                    <button class="btn btn-outline-success" wire:click="entregar({{ $turno->id }})">Registrar entrega</button>
-                                </div>
-                            </div>
-                        @elseif ($turno->entregado_en)
+                        @if ($turno->entregado_en)
                             <div class="small text-muted mt-2">
                                 Entregado el {{ $turno->entregado_en->format('d/m/Y H:i') }}
                                 @if ($turno->observaciones_entrega) — "{{ $turno->observaciones_entrega }}" @endif
+                                @if (!empty($turno->imagenes_entrega))
+                                    <div class="d-flex gap-2 mt-1 flex-wrap">
+                                        @foreach ($turno->imagenesEntregaUrls() as $url)
+                                            <a href="{{ $url }}" target="_blank">
+                                                <img src="{{ $url }}" alt="Imagen de entrega" style="width:48px;height:48px;object-fit:cover;border-radius:.4rem;border:1px solid var(--ies-border);">
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
                         @endif
                     </div>
@@ -96,5 +110,75 @@
         </div>
 
         <div class="mt-3">{{ $turnos->links() }}</div>
+    @endif
+
+    @if ($turnoModalRecepcion || $turnoModalEntrega)
+        @php
+            $esRecepcion = (bool) $turnoModalRecepcion;
+        @endphp
+        <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,.5);">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ $esRecepcion ? 'Registrar recepción' : 'Registrar entrega' }}</h5>
+                    </div>
+                    <div class="modal-body">
+                        @if ($turnoEnModal)
+                            <p class="small text-muted mb-3">
+                                {{ $turnoEnModal->espacio->nombre }} · {{ $turnoEnModal->fecha->format('d/m/Y') }} ·
+                                {{ substr($turnoEnModal->hora_inicio, 0, 5) }}–{{ substr($turnoEnModal->hora_fin, 0, 5) }}
+                            </p>
+                        @endif
+
+                        <label class="form-label small">
+                            {{ $esRecepcion ? '¿En qué condiciones recibís el espacio o equipo?' : '¿En qué condiciones lo entregás?' }}
+                        </label>
+                        <textarea
+                            class="form-control form-control-sm @error('observacionesModal') is-invalid @enderror"
+                            rows="3"
+                            wire:model="observacionesModal"
+                            placeholder="Observaciones (opcional)"
+                        ></textarea>
+                        @error('observacionesModal') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                        <label class="form-label small mt-3">Imágenes (opcional, hasta 5)</label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            class="form-control form-control-sm @error('imagenesModal') is-invalid @enderror @error('imagenesModal.*') is-invalid @enderror"
+                            wire:model="imagenesModal"
+                        >
+                        @error('imagenesModal') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                        @error('imagenesModal.*') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+
+                        <div wire:loading wire:target="imagenesModal" class="small text-muted mt-1">Subiendo imágenes...</div>
+
+                        @if (!empty($imagenesModal))
+                            <div class="d-flex gap-2 mt-2 flex-wrap">
+                                @foreach ($imagenesModal as $imagen)
+                                    <span class="badge text-bg-light border small">{{ $imagen->getClientOriginalName() }}</span>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" wire:click="cerrarModal">Cancelar</button>
+                        <button
+                            type="button"
+                            class="btn btn-success btn-sm"
+                            wire:click="{{ $esRecepcion ? 'confirmarRecepcion' : 'confirmarEntrega' }}"
+                            wire:loading.attr="disabled"
+                            wire:target="confirmarRecepcion,confirmarEntrega,imagenesModal"
+                        >
+                            <span wire:loading.remove wire:target="confirmarRecepcion,confirmarEntrega">
+                                Confirmar {{ $esRecepcion ? 'recepción' : 'entrega' }}
+                            </span>
+                            <span wire:loading wire:target="confirmarRecepcion,confirmarEntrega">Guardando...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
 </div>
