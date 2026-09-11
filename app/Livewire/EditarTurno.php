@@ -3,7 +3,9 @@
 namespace App\Livewire;
 
 use App\Enums\EstadoTurno;
+use App\Livewire\Concerns\SeleccionaFechaConCalendario;
 use App\Models\Carrera;
+use App\Models\Espacio;
 use App\Models\Turno;
 use App\Notifications\TurnoNotification;
 use Illuminate\Validation\Rule;
@@ -13,6 +15,7 @@ use Livewire\WithFileUploads;
 class EditarTurno extends Component
 {
     use WithFileUploads;
+    use SeleccionaFechaConCalendario;
 
     public Turno $turno;
 
@@ -65,6 +68,13 @@ class EditarTurno extends Component
 
             $this->recalcularHorasFin();
         }
+
+        $this->inicializarCalendario();
+    }
+
+    protected function espacioParaCalendario(): Espacio
+    {
+        return $this->turno->espacio;
     }
 
     public function updatedFecha(): void

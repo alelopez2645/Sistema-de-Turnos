@@ -78,12 +78,20 @@
             border-bottom: 1px solid rgba(255,255,255,.14);
         }
         .ies-sidebar-brand a {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
             color: #fff;
             font-weight: 800;
             font-size: 1.05rem;
             letter-spacing: -.01em;
         }
         .ies-sidebar-brand a:hover { text-decoration: none; }
+        .ies-sidebar-brand img {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+        }
         .ies-sidebar-brand small {
             display: block;
             font-weight: 500;
@@ -228,6 +236,113 @@
             margin: .15rem 0 0;
         }
 
+        /* Calendario de selección de fecha (turnos) */
+        .ies-calendario {
+            border: 1px solid var(--ies-border);
+            border-radius: var(--bs-border-radius);
+            padding: .85rem;
+            background: var(--ies-surface);
+            max-width: 320px;
+        }
+        .ies-calendario.is-invalid {
+            border-color: #dc3545;
+        }
+        .ies-calendario-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: .6rem;
+        }
+        .ies-calendario-mes {
+            font-weight: 700;
+            font-size: .9rem;
+            text-transform: capitalize;
+            color: var(--ies-text);
+        }
+        .ies-calendario-nav {
+            border: 1px solid var(--ies-border);
+            background: var(--ies-bg);
+            color: var(--ies-text);
+            border-radius: .35rem;
+            width: 28px;
+            height: 28px;
+            line-height: 1;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .ies-calendario-nav:hover {
+            background: var(--ies-primary);
+            color: #fff;
+            border-color: var(--ies-primary);
+        }
+        .ies-calendario-semana {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: .7rem;
+            font-weight: 700;
+            color: var(--ies-text-muted);
+            margin-bottom: .3rem;
+        }
+        .ies-calendario-grilla {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: .2rem;
+            transition: opacity .1s ease;
+        }
+        .ies-calendario-cargando { opacity: .5; }
+        .ies-calendario-dia {
+            aspect-ratio: 1 / 1;
+            border: 1px solid transparent;
+            background: transparent;
+            border-radius: .35rem;
+            font-size: .82rem;
+            font-weight: 600;
+            color: var(--ies-text);
+            cursor: pointer;
+        }
+        .ies-calendario-dia:hover:not(:disabled) {
+            background: rgba(var(--ies-primary-rgb), .1);
+            border-color: var(--ies-primary);
+        }
+        .ies-calendario-dia:disabled {
+            color: var(--ies-text-muted);
+            opacity: .35;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+        .ies-calendario-dia--fuera {
+            color: var(--ies-text-muted);
+            opacity: .5;
+        }
+        .ies-calendario-dia--hoy {
+            border-color: var(--ies-accent);
+        }
+        .ies-calendario-dia--seleccionado {
+            background: var(--ies-primary);
+            border-color: var(--ies-primary);
+            color: #fff;
+        }
+        .ies-calendario-dia--seleccionado:hover {
+            background: var(--ies-primary-dark);
+        }
+        .ies-calendario-leyenda {
+            display: flex;
+            gap: 1rem;
+            margin-top: .65rem;
+            font-size: .72rem;
+            color: var(--ies-text-muted);
+        }
+        .ies-calendario-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: .25rem;
+        }
+        .ies-calendario-dot--disponible { background: var(--ies-primary); }
+        .ies-calendario-dot--bloqueado { background: var(--ies-border); }
+
         /* Barras simples para el dashboard (sin dependencias JS) */
         .progress {
             background-color: var(--ies-bg);
@@ -246,8 +361,11 @@
         <aside class="ies-sidebar">
             <div class="ies-sidebar-brand">
                 <a href="{{ auth()->check() && auth()->user()->esAdministrador() ? route('admin.dashboard') : route('dashboard') }}">
-                    IES Nuevo Horizonte
-                    <small>Sistema de turnos</small>
+                    <img src="{{ asset('images/logo-ies.png') }}" alt="Logo IES Nuevo Horizonte">
+                    <span>
+                        IES Nuevo Horizonte
+                        <small>Sistema de turnos</small>
+                    </span>
                 </a>
             </div>
 

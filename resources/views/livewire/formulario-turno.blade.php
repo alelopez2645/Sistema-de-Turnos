@@ -35,9 +35,8 @@
             <form wire:submit="intentarGuardar">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label small">Fecha</label>
-                        <input type="date" class="form-control @error('fecha') is-invalid @enderror" wire:model.live="fecha" min="{{ now()->toDateString() }}">
-                        @error('fecha') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <label class="form-label small d-block">Fecha</label>
+                        @include('partials.calendario-fecha')
                     </div>
 
                     <div class="col-md-6">

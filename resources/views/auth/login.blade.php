@@ -28,6 +28,11 @@
             font-weight: 800;
             letter-spacing: -.01em;
         }
+        .login-brand img {
+            width: 84px;
+            height: 84px;
+            margin-bottom: .75rem;
+        }
         .login-brand small {
             display: block;
             font-weight: 500;
@@ -57,6 +62,7 @@
 <body class="d-flex align-items-center">
 <div class="container" style="max-width: 380px;">
     <div class="text-center mb-4 login-brand">
+        <img src="{{ asset('images/logo-ies.png') }}" alt="Logo IES Nuevo Horizonte">
         <div class="h4 mb-0">IES Nuevo Horizonte</div>
         <small>Sistema de gestión de espacios y turnos</small>
     </div>

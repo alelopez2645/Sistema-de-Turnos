@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\EstadoTurno;
 use App\Enums\TipoEspacio;
+use App\Livewire\Concerns\SeleccionaFechaConCalendario;
 use App\Models\Carrera;
 use App\Models\Espacio;
 use App\Models\Turno;
@@ -15,6 +16,7 @@ use Livewire\WithFileUploads;
 class FormularioTurno extends Component
 {
     use WithFileUploads;
+    use SeleccionaFechaConCalendario;
 
     public TipoEspacio $tipo;
     public Espacio $espacio;
@@ -48,6 +50,13 @@ class FormularioTurno extends Component
 
         $this->tipo = TipoEspacio::from($tipoEspacio);
         $this->espacio = Espacio::where('tipo', $this->tipo->value)->firstOrFail();
+
+        $this->inicializarCalendario();
+    }
+
+    protected function espacioParaCalendario(): Espacio
+    {
+        return $this->espacio;
     }
 
     public function updatedFecha(): void
