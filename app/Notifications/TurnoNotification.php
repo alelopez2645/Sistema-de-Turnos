@@ -69,7 +69,9 @@ class TurnoNotification extends Notification
     protected function asunto(): string
     {
         return match ($this->evento) {
-            self::EVENTO_CREADO => "Turno solicitado — {$this->turno->espacio->nombre}",
+            self::EVENTO_CREADO => $this->turno->espacio->tipo->requiereAprobacion()
+                ? "Turno solicitado — {$this->turno->espacio->nombre}"
+                : "Turno reservado — {$this->turno->espacio->nombre}",
             self::EVENTO_MODIFICADO => "Turno modificado — {$this->turno->espacio->nombre}",
             self::EVENTO_APROBADO => "Turno aprobado — {$this->turno->espacio->nombre}",
             self::EVENTO_RECHAZADO => "Turno rechazado — {$this->turno->espacio->nombre}",
@@ -81,7 +83,9 @@ class TurnoNotification extends Notification
     protected function introduccion(): string
     {
         return match ($this->evento) {
-            self::EVENTO_CREADO => 'Registramos tu solicitud de turno. Queda pendiente de aprobación por administración.',
+            self::EVENTO_CREADO => $this->turno->espacio->tipo->requiereAprobacion()
+                ? 'Registramos tu solicitud de turno. Queda pendiente de aprobación por administración.'
+                : 'Tu reserva quedó confirmada.',
             self::EVENTO_MODIFICADO => 'Se modificó tu turno. Si estaba aprobado, vuelve a quedar pendiente de revisión.',
             self::EVENTO_APROBADO => 'Tu turno fue aprobado.',
             self::EVENTO_RECHAZADO => 'Tu turno fue rechazado.',

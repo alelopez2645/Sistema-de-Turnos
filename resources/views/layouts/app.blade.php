@@ -190,10 +190,200 @@
         }
         .card-espacio {
             transition: border-color .15s ease, transform .15s ease;
+            overflow: hidden;
         }
         .card-espacio:hover {
             border-color: var(--ies-primary);
             transform: translateY(-2px);
+        }
+        .card-espacio-img {
+            height: 160px;
+            object-fit: cover;
+            background-color: #eef1f5;
+        }
+        .card-espacio-img-contain {
+            object-fit: contain;
+            padding: 1.25rem;
+        }
+        /* Calendario semanal de reserva (drag para elegir día + horario) */
+        .calendario-semanal-wrap {
+            overflow: auto;
+            max-height: 640px;
+            border: 1px solid var(--ies-border);
+            border-radius: var(--bs-border-radius);
+            background: var(--ies-surface);
+        }
+        .calendario-semanal {
+            display: grid;
+            grid-template-columns: 64px repeat(7, minmax(108px, 1fr));
+            min-width: 860px;
+            user-select: none;
+        }
+        .fila-header, .fila-horario {
+            display: contents;
+        }
+        .celda-esquina, .celda-dia-header {
+            position: sticky;
+            top: 0;
+            background: var(--ies-surface);
+            z-index: 3;
+            border-bottom: 1px solid var(--ies-border);
+            padding: .4rem .25rem;
+            text-align: center;
+        }
+        .celda-esquina {
+            left: 0;
+            z-index: 4;
+        }
+        .celda-dia-header.es-hoy {
+            color: var(--ies-primary);
+            font-weight: 800;
+        }
+        .celda-dia-header.es-finde {
+            color: var(--ies-text-muted);
+            background: #F5F6F7;
+        }
+        .dia-nombre {
+            display: block;
+            font-size: .68rem;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
+        .dia-fecha {
+            display: block;
+            font-size: .85rem;
+        }
+        .celda-hora {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background: var(--ies-surface);
+            font-size: .68rem;
+            color: var(--ies-text-muted);
+            text-align: right;
+            padding: 0 .4rem;
+            border-right: 1px solid var(--ies-border);
+            border-top: 1px solid var(--ies-border);
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-end;
+            min-height: 30px;
+        }
+        .celda-hora.hora-en-punto {
+            font-weight: 700;
+            color: var(--ies-text);
+        }
+        .celda-turno {
+            min-height: 30px;
+            border-top: 1px solid var(--ies-border);
+            border-left: 1px solid var(--ies-border);
+            position: relative;
+            cursor: pointer;
+            background: #fff;
+        }
+        .calendario-semanal > .fila-horario:last-child .celda-turno,
+        .calendario-semanal > .fila-horario:last-child .celda-hora {
+            border-bottom: 1px solid var(--ies-border);
+        }
+        .celda-turno.celda-fuera {
+            background: repeating-linear-gradient(45deg, #F3F4F6, #F3F4F6 6px, #ECEEF0 6px, #ECEEF0 12px);
+            cursor: not-allowed;
+        }
+        .celda-turno.celda-pasado {
+            background: #F3F4F6;
+            cursor: not-allowed;
+        }
+        .celda-turno.celda-bloqueada {
+            cursor: not-allowed;
+        }
+        .celda-turno:not(.celda-bloqueada):hover {
+            background: rgba(var(--ies-primary-rgb), .12);
+        }
+        .celda-turno.celda-en-arrastre {
+            background: rgba(var(--ies-accent-rgb), .55) !important;
+        }
+
+        /* Bloques de reserva: uno por turno, ocupando todas las filas de su
+           horario (grid-row: span) con su contenido adentro. Van dibujados
+           encima de la grilla de celdas (mismo grid-column/grid-row) pero no
+           reciben clics ni arrastre (pointer-events: none), así la celda de
+           abajo sigue funcionando para seleccionar el resto del horario libre. */
+        .evento-turno {
+            position: relative;
+            z-index: 2;
+            margin-top: 1px;
+            border-radius: 4px;
+            padding: .2rem .35rem;
+            font-size: .64rem;
+            line-height: 1.25;
+            overflow: hidden;
+            color: #fff;
+            pointer-events: none;
+        }
+        .evento-turno.evento-aprobado {
+            background: var(--ies-primary);
+        }
+        .evento-turno.evento-pendiente {
+            background: var(--ies-accent);
+        }
+        .evento-turno.evento-propio {
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .85);
+        }
+        .evento-horario {
+            display: block;
+            font-weight: 700;
+        }
+        .evento-titulo {
+            display: block;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .evento-meta {
+            display: block;
+            opacity: .9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .calendario-leyenda .leyenda-dot {
+            display: inline-block;
+            width: .7rem;
+            height: .7rem;
+            border-radius: 2px;
+            margin-right: .25rem;
+            vertical-align: middle;
+        }
+        .leyenda-libre { background: #fff; border: 1px solid var(--ies-border); }
+        .leyenda-pendiente { background: var(--ies-accent); }
+        .leyenda-aprobado { background: var(--ies-primary); }
+        .leyenda-propia { background: var(--ies-primary); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .85); }
+        .leyenda-bloqueada { background: repeating-linear-gradient(45deg, #F3F4F6, #F3F4F6 4px, #ECEEF0 4px, #ECEEF0 8px); border: 1px solid var(--ies-border); }
+
+        .btn-ies-accent {
+            background: var(--ies-accent);
+            border-color: var(--ies-accent);
+            color: #fff;
+        }
+        .btn-ies-accent:hover,
+        .btn-ies-accent:focus {
+            background: #A3541F;
+            border-color: #A3541F;
+            color: #fff;
+        }
+
+        .card-espacio-img-placeholder {
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: .5rem 1rem;
+            background: linear-gradient(135deg, var(--ies-primary) 0%, var(--ies-primary-dark) 100%);
+            color: #fff;
+            font-weight: 600;
+            font-size: .95rem;
         }
 
         /* Botones */

@@ -54,14 +54,26 @@ enum TipoEspacio: string
     }
 
     /**
+     * Auditorio y Sala de Capacitación necesitan aprobación de administración
+     * antes de quedar confirmados. Sala de Informática, TV Smart y Proyector
+     * se reservan directamente (quedan en estado "aprobado" desde el
+     * momento en que se crean).
+     */
+    public function requiereAprobacion(): bool
+    {
+        return in_array($this, [self::AUDITORIO, self::SALA_CAPACITACION], true);
+    }
+
+    /**
      * Horas mínimas de anticipación exigidas para reservar este tipo de
-     * espacio. TV Smart y Proyector no exigen anticipación mínima (más allá
-     * de no poder reservar en una fecha/hora ya pasada).
+     * espacio. Sala de Informática, TV Smart y Proyector no exigen
+     * anticipación mínima (más allá de no poder reservar en una fecha/hora
+     * ya pasada).
      */
     public function horasAnticipacionMinima(): int
     {
         return match ($this) {
-            self::TV_SMART, self::PROYECTOR => 0,
+            self::SALA_INFORMATICA, self::TV_SMART, self::PROYECTOR => 0,
             default => 48,
         };
     }

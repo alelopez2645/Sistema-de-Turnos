@@ -27,6 +27,7 @@ class Turno extends Model
         'espacio_id',
         'docente_id',
         'carrera_id',
+        'tipo_reunion',
         'fecha',
         'hora_inicio',
         'hora_fin',
