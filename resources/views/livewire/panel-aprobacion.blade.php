@@ -96,13 +96,14 @@
                             <div class="small text-muted mt-2"><em>Obs.: {{ $turno->observaciones }}</em></div>
                         @endif
 
-                        @if (in_array($turno->estado->value, ['pendiente', 'aprobado']))
-                            <div class="mt-2">
+                        <div class="mt-2 d-flex gap-2 flex-wrap">
+                            <a href="{{ route('turnos.editar', $turno) }}" class="btn btn-sm btn-outline-secondary">Editar turno</a>
+                            @if (in_array($turno->estado->value, ['pendiente', 'aprobado']))
                                 <button class="btn btn-sm btn-outline-secondary" wire:click="cancelar({{ $turno->id }})" wire:confirm="¿Cancelar este turno?">
                                     Cancelar turno
                                 </button>
-                            </div>
-                        @endif
+                            @endif
+                        </div>
                     </div>
                 </div>
             @endforeach

@@ -3,18 +3,85 @@
         <div class="alert alert-info py-2 small">{{ $mensaje }}</div>
     @endif
 
-    @if ($turnos->isEmpty())
-        <p class="text-muted">Todavía no solicitaste ningún turno.</p>
-    @else
-        <div class="d-flex flex-column gap-2">
-            @foreach ($turnos as $turno)
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <strong>{{ $turno->espacio->nombre }}</strong>
-                                <span class="text-muted small ms-2">{{ $turno->fecha->format('d/m/Y') }} · {{ substr($turno->hora_inicio, 0, 5) }}–{{ substr($turno->hora_fin, 0, 5) }}</span>
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary btn-sm" wire:click="semanaAnterior" title="Semana anterior">&laquo;</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" wire:click="irAHoy">Hoy</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" wire:click="semanaSiguiente" title="Semana siguiente">&raquo;</button>
+        </div>
+        <div class="fw-semibold">{{ $rangoSemana }}</div>
+    </div>
+
+    <div class="calendario-leyenda small text-muted mb-2 d-flex flex-wrap gap-3">
+        <span><i class="leyenda-dot leyenda-pendiente"></i> Pendiente</span>
+        <span><i class="leyenda-dot leyenda-aprobado"></i> Aprobado</span>
+        <span><i class="leyenda-dot leyenda-rechazado"></i> Rechazado</span>
+        <span><i class="leyenda-dot leyenda-cancelado"></i> Cancelado</span>
+    </div>
+
+    <div class="mis-turnos-cal-wrap mb-3">
+        <div class="mis-turnos-cal">
+            <div class="mtc-header-row">
+                <div class="mtc-esquina"></div>
+                @foreach ($dias as $dia)
+                    <div class="mtc-dia-header @if ($dia['esHoy']) es-hoy @endif">
+                        <span class="dia-nombre">{{ $dia['etiqueta'] }}</span>
+                        <span class="dia-fecha">{{ $dia['diaMes'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="mtc-body-row">
+                <div class="mtc-horas" style="height: {{ $altoTotal }}px;">
+                    @foreach ($horas as $h)
+                        <div class="mtc-hora-label" style="height: 48px;">{{ sprintf('%02d:00', $h) }}</div>
+                    @endforeach
+                </div>
+
+                @foreach ($dias as $dia)
+                    <div class="mtc-dia-col" style="height: {{ $altoTotal }}px;">
+                        @foreach ($horas as $h)
+                            <div class="mtc-linea-hora" style="top: {{ ($h - 8) * 48 }}px;"></div>
+                        @endforeach
+
+                        @foreach ($eventosPorDia[$dia['fecha']] as $ev)
+                            @php $ancho = 100 / $ev['lanes']; @endphp
+                            <div
+                                class="mtc-evento mtc-evento-{{ $ev['estado'] }}"
+                                style="
+                                    top: {{ $ev['top'] }}px;
+                                    height: {{ $ev['alto'] }}px;
+                                    width: calc({{ $ancho }}% - 2px);
+                                    left: calc({{ $ancho }}% * {{ $ev['lane'] }});
+                                "
+                                wire:click="abrirDetalle({{ $ev['turno_id'] }})"
+                                title="{{ $ev['espacio'] }} — {{ $ev['horario'] }} ({{ $ev['estado'] }})"
+                            >
+                                <span class="mtc-evento-espacio">{{ $ev['espacio'] }}</span>
+                                <span class="mtc-evento-horario">{{ $ev['horario'] }}</span>
                             </div>
+                        @endforeach
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    {{-- Popup de detalle: se abre al hacer clic en un turno del calendario --}}
+    @if ($turnoEnDetalle)
+        <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,.5);">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ $turnoEnDetalle->espacio->nombre }}</h5>
+                        <button type="button" class="btn-close" wire:click="cerrarDetalle" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="text-muted small">
+                                {{ $turnoEnDetalle->fecha->format('d/m/Y') }} ·
+                                {{ substr($turnoEnDetalle->hora_inicio, 0, 5) }}–{{ substr($turnoEnDetalle->hora_fin, 0, 5) }}
+                            </span>
                             @php
                                 $colores = [
                                     'pendiente' => 'warning',
@@ -23,63 +90,35 @@
                                     'cancelado' => 'secondary',
                                 ];
                             @endphp
-                            <span class="badge text-bg-{{ $colores[$turno->estado->value] ?? 'secondary' }}">{{ $turno->estado->value }}</span>
+                            <span class="badge text-bg-{{ $colores[$turnoEnDetalle->estado->value] ?? 'secondary' }}">{{ $turnoEnDetalle->estado->value }}</span>
                         </div>
 
-                        <div class="small text-muted mt-1">
-                            @if ($turno->carrera) {{ $turno->carrera->nombre }} · @endif
-                            @if ($turno->curso) Curso: {{ $turno->curso }} · @endif
-                            @if ($turno->cantidad_asistentes_aproximada) ~{{ $turno->cantidad_asistentes_aproximada }} personas @endif
+                        <div class="small text-muted mb-1">
+                            @if ($turnoEnDetalle->carrera) {{ $turnoEnDetalle->carrera->nombre }} · @endif
+                            @if ($turnoEnDetalle->curso) Curso: {{ $turnoEnDetalle->curso }} · @endif
+                            @if ($turnoEnDetalle->cantidad_asistentes_aproximada) ~{{ $turnoEnDetalle->cantidad_asistentes_aproximada }} personas @endif
                         </div>
-                        <div class="small mt-1">{{ $turno->motivo }}</div>
+                        <div class="small mb-2">{{ $turnoEnDetalle->motivo }}</div>
 
-                        @if ($turno->estado->value === 'rechazado' && $turno->observaciones)
-                            <div class="small text-danger mt-2"><em>Motivo del rechazo: {{ $turno->observaciones }}</em></div>
-                        @elseif ($turno->observaciones)
-                            <div class="small text-muted mt-2"><em>Obs. de administración: {{ $turno->observaciones }}</em></div>
+                        @if ($turnoEnDetalle->estado->value === 'rechazado' && $turnoEnDetalle->observaciones)
+                            <div class="small text-danger mb-2"><em>Motivo del rechazo: {{ $turnoEnDetalle->observaciones }}</em></div>
+                        @elseif ($turnoEnDetalle->observaciones)
+                            <div class="small text-muted mb-2"><em>Obs. de administración: {{ $turnoEnDetalle->observaciones }}</em></div>
                         @endif
 
-                        @if ($turno->nota_formal_path)
-                            <div class="small mt-2">
-                                <a href="{{ $turno->notaFormalUrl() }}" target="_blank">Ver nota formal adjunta</a>
+                        @if ($turnoEnDetalle->nota_formal_path)
+                            <div class="small mb-2">
+                                <a href="{{ $turnoEnDetalle->notaFormalUrl() }}" target="_blank">Ver nota formal adjunta</a>
                             </div>
                         @endif
 
-                        <div class="d-flex gap-2 mt-3">
-                            @if ($turno->puedeModificarse())
-                                <a href="{{ route('turnos.editar', $turno) }}" class="btn btn-sm btn-outline-primary">Editar</a>
-                            @endif
-
-                            @if (in_array($turno->estado->value, ['pendiente', 'aprobado']))
-                                <button
-                                    class="btn btn-sm btn-outline-danger"
-                                    wire:click="cancelar({{ $turno->id }})"
-                                    wire:confirm="¿Seguro que querés cancelar este turno?"
-                                >
-                                    Cancelar
-                                </button>
-                            @endif
-
-                            @if ($turno->puedeRecepcionarse())
-                                <button class="btn btn-sm btn-outline-success" wire:click="abrirRecepcion({{ $turno->id }})">
-                                    Registrar recepción
-                                </button>
-                            @endif
-
-                            @if ($turno->puedeEntregarse())
-                                <button class="btn btn-sm btn-outline-success" wire:click="abrirEntrega({{ $turno->id }})">
-                                    Registrar entrega
-                                </button>
-                            @endif
-                        </div>
-
-                        @if ($turno->recepcionado_en)
-                            <div class="small text-muted mt-2">
-                                Recepcionado el {{ $turno->recepcionado_en->format('d/m/Y H:i') }}
-                                @if ($turno->observaciones_recepcion) — "{{ $turno->observaciones_recepcion }}" @endif
-                                @if (!empty($turno->imagenes_recepcion))
+                        @if ($turnoEnDetalle->recepcionado_en)
+                            <div class="small text-muted border-top pt-2 mt-2">
+                                Recepcionado el {{ $turnoEnDetalle->recepcionado_en->format('d/m/Y H:i') }}
+                                @if ($turnoEnDetalle->observaciones_recepcion) — "{{ $turnoEnDetalle->observaciones_recepcion }}" @endif
+                                @if (!empty($turnoEnDetalle->imagenes_recepcion))
                                     <div class="d-flex gap-2 mt-1 flex-wrap">
-                                        @foreach ($turno->imagenesRecepcionUrls() as $url)
+                                        @foreach ($turnoEnDetalle->imagenesRecepcionUrls() as $url)
                                             <a href="{{ $url }}" target="_blank">
                                                 <img src="{{ $url }}" alt="Imagen de recepción" style="width:48px;height:48px;object-fit:cover;border-radius:.4rem;border:1px solid var(--ies-border);">
                                             </a>
@@ -89,13 +128,13 @@
                             </div>
                         @endif
 
-                        @if ($turno->entregado_en)
-                            <div class="small text-muted mt-2">
-                                Entregado el {{ $turno->entregado_en->format('d/m/Y H:i') }}
-                                @if ($turno->observaciones_entrega) — "{{ $turno->observaciones_entrega }}" @endif
-                                @if (!empty($turno->imagenes_entrega))
+                        @if ($turnoEnDetalle->entregado_en)
+                            <div class="small text-muted border-top pt-2 mt-2">
+                                Entregado el {{ $turnoEnDetalle->entregado_en->format('d/m/Y H:i') }}
+                                @if ($turnoEnDetalle->observaciones_entrega) — "{{ $turnoEnDetalle->observaciones_entrega }}" @endif
+                                @if (!empty($turnoEnDetalle->imagenes_entrega))
                                     <div class="d-flex gap-2 mt-1 flex-wrap">
-                                        @foreach ($turno->imagenesEntregaUrls() as $url)
+                                        @foreach ($turnoEnDetalle->imagenesEntregaUrls() as $url)
                                             <a href="{{ $url }}" target="_blank">
                                                 <img src="{{ $url }}" alt="Imagen de entrega" style="width:48px;height:48px;object-fit:cover;border-radius:.4rem;border:1px solid var(--ies-border);">
                                             </a>
@@ -105,13 +144,39 @@
                             </div>
                         @endif
                     </div>
-                </div>
-            @endforeach
-        </div>
+                    <div class="modal-footer flex-wrap gap-2">
+                        @if ($turnoEnDetalle->puedeModificarse())
+                            <a href="{{ route('turnos.editar', $turnoEnDetalle) }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                        @endif
 
-        <div class="mt-3">{{ $turnos->links() }}</div>
+                        @if (in_array($turnoEnDetalle->estado->value, ['pendiente', 'aprobado']))
+                            <button
+                                class="btn btn-sm btn-outline-danger"
+                                wire:click="cancelar({{ $turnoEnDetalle->id }})"
+                                wire:confirm="¿Seguro que querés cancelar este turno?"
+                            >
+                                Cancelar
+                            </button>
+                        @endif
+
+                        @if ($turnoEnDetalle->puedeRecepcionarse())
+                            <button class="btn btn-sm btn-outline-success" wire:click="abrirRecepcion({{ $turnoEnDetalle->id }})">
+                                Registrar recepción
+                            </button>
+                        @endif
+
+                        @if ($turnoEnDetalle->puedeEntregarse())
+                            <button class="btn btn-sm btn-outline-success" wire:click="abrirEntrega({{ $turnoEnDetalle->id }})">
+                                Registrar entrega
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
 
+    {{-- Modal de recepción / entrega: se conserva exactamente igual que antes --}}
     @if ($turnoModalRecepcion || $turnoModalEntrega)
         @php
             $esRecepcion = (bool) $turnoModalRecepcion;

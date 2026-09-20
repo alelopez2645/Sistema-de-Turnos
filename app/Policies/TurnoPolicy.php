@@ -20,11 +20,15 @@ class TurnoPolicy
 
     public function create(User $user): bool
     {
-        return $user->esDocente();
+        return $user->esDocente() || $user->esAdministrador();
     }
 
     public function update(User $user, Turno $turno): bool
     {
+        if ($user->esAdministrador()) {
+            return true;
+        }
+
         // el docente dueño del turno puede editarlo hasta 24hs antes del inicio del evento
         return $turno->docente_id === $user->id && $turno->puedeModificarse();
     }

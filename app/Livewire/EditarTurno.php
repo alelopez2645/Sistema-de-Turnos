@@ -278,7 +278,7 @@ class EditarTurno extends Component
             $datos['nota_formal_path'] = $this->notaFormal->store('notas-formales', 'public');
         }
 
-        $volvioAPendiente = $this->turno->estado === EstadoTurno::APROBADO;
+        $volvioAPendiente = $this->turno->estado === EstadoTurno::APROBADO && $tipo->requiereAprobacion();
 
         $this->turno->update([
             ...$datos,

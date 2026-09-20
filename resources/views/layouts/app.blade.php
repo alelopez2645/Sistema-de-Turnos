@@ -360,6 +360,109 @@
         .leyenda-aprobado { background: var(--ies-primary); }
         .leyenda-propia { background: var(--ies-primary); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .85); }
         .leyenda-bloqueada { background: repeating-linear-gradient(45deg, #F3F4F6, #F3F4F6 4px, #ECEEF0 4px, #ECEEF0 8px); border: 1px solid var(--ies-border); }
+        .leyenda-rechazado { background: #B23A48; }
+        .leyenda-cancelado { background: #9AA1A6; }
+
+        /* Calendario de "Mis turnos" (solo lectura, click para ver detalle) */
+        .mis-turnos-cal-wrap {
+            overflow: auto;
+            max-height: 640px;
+            border: 1px solid var(--ies-border);
+            border-radius: var(--bs-border-radius);
+            background: var(--ies-surface);
+        }
+        .mis-turnos-cal {
+            display: flex;
+            flex-direction: column;
+            min-width: 860px;
+        }
+        .mtc-header-row {
+            display: flex;
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            background: var(--ies-surface);
+            border-bottom: 1px solid var(--ies-border);
+        }
+        .mtc-esquina {
+            width: 56px;
+            flex: 0 0 56px;
+        }
+        .mtc-dia-header {
+            flex: 1;
+            min-width: 110px;
+            text-align: center;
+            padding: .4rem .25rem;
+        }
+        .mtc-dia-header.es-hoy {
+            color: var(--ies-primary);
+            font-weight: 800;
+        }
+        .mtc-body-row {
+            display: flex;
+        }
+        .mtc-horas {
+            width: 56px;
+            flex: 0 0 56px;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background: var(--ies-surface);
+            border-right: 1px solid var(--ies-border);
+        }
+        .mtc-hora-label {
+            font-size: .62rem;
+            color: var(--ies-text-muted);
+            text-align: right;
+            padding: 0 .35rem;
+            box-sizing: border-box;
+            border-top: 1px solid var(--ies-border);
+        }
+        .mtc-hora-label:first-child {
+            border-top: none;
+        }
+        .mtc-dia-col {
+            flex: 1;
+            min-width: 110px;
+            position: relative;
+            border-right: 1px solid var(--ies-border);
+        }
+        .mtc-linea-hora {
+            position: absolute;
+            left: 0;
+            right: 0;
+            border-top: 1px solid var(--ies-border);
+        }
+        .mtc-evento {
+            position: absolute;
+            border-radius: 4px;
+            padding: .15rem .3rem;
+            font-size: .6rem;
+            line-height: 1.2;
+            overflow: hidden;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+        }
+        .mtc-evento:hover {
+            filter: brightness(1.08);
+        }
+        .mtc-evento-espacio {
+            display: block;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mtc-evento-horario {
+            display: block;
+            opacity: .9;
+            white-space: nowrap;
+        }
+        .mtc-evento-pendiente { background: var(--ies-accent); }
+        .mtc-evento-aprobado { background: var(--ies-primary); }
+        .mtc-evento-rechazado { background: #B23A48; }
+        .mtc-evento-cancelado { background: #9AA1A6; text-decoration: line-through; opacity: .8; }
 
         .btn-ies-accent {
             background: var(--ies-accent);
@@ -533,6 +636,8 @@
         .ies-calendario-dot--disponible { background: var(--ies-primary); }
         .ies-calendario-dot--bloqueado { background: var(--ies-border); }
 
+        [x-cloak] { display: none !important; }
+
         /* Barras simples para el dashboard (sin dependencias JS) */
         .progress {
             background-color: var(--ies-bg);
@@ -541,6 +646,130 @@
         .progress-bar {
             background-color: var(--ies-primary);
             border-radius: 999px;
+        }
+
+        /* Barra superior + campana de notificaciones */
+        .ies-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .6rem 1.25rem;
+            border-bottom: 1px solid var(--ies-border);
+            background: var(--ies-surface);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        .ies-notif-bell {
+            position: relative;
+        }
+        .ies-notif-btn {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--ies-border);
+            background: var(--ies-bg);
+            color: var(--ies-text);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .ies-notif-btn:hover {
+            border-color: var(--ies-primary);
+            color: var(--ies-primary);
+        }
+        .ies-notif-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 3px;
+            border-radius: 999px;
+            background: var(--ies-accent);
+            color: #fff;
+            font-size: .62rem;
+            font-weight: 700;
+            line-height: 17px;
+            text-align: center;
+        }
+        .ies-notif-dropdown {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            width: 340px;
+            max-width: calc(100vw - 2rem);
+            max-height: 420px;
+            overflow-y: auto;
+            background: var(--ies-surface);
+            border: 1px solid var(--ies-border);
+            border-radius: .6rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
+            z-index: 30;
+        }
+        .ies-notif-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .7rem .9rem;
+            border-bottom: 1px solid var(--ies-border);
+            font-weight: 700;
+            font-size: .85rem;
+            position: sticky;
+            top: 0;
+            background: var(--ies-surface);
+        }
+        .ies-notif-marcar-todas {
+            border: none;
+            background: none;
+            color: var(--ies-primary);
+            font-size: .72rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+        }
+        .ies-notif-marcar-todas:hover {
+            text-decoration: underline;
+        }
+        .ies-notif-item {
+            display: block;
+            padding: .65rem .9rem;
+            border-bottom: 1px solid var(--ies-border);
+            color: var(--ies-text);
+        }
+        .ies-notif-item:last-child {
+            border-bottom: none;
+        }
+        .ies-notif-item:hover {
+            background: rgba(var(--ies-primary-rgb), .06);
+            color: var(--ies-text);
+            text-decoration: none;
+        }
+        .ies-notif-item.no-leida {
+            background: rgba(var(--ies-accent-rgb), .08);
+            box-shadow: inset 3px 0 0 var(--ies-accent);
+        }
+        .ies-notif-item-titulo {
+            font-weight: 700;
+            font-size: .8rem;
+        }
+        .ies-notif-item-texto {
+            font-size: .76rem;
+            color: var(--ies-text-muted);
+            margin-top: .1rem;
+        }
+        .ies-notif-item-fecha {
+            font-size: .68rem;
+            color: var(--ies-text-muted);
+            margin-top: .25rem;
+        }
+        .ies-notif-vacio {
+            padding: 1.25rem .9rem;
+            text-align: center;
+            font-size: .8rem;
+            color: var(--ies-text-muted);
         }
     </style>
 
@@ -563,6 +792,12 @@
         </aside>
 
         <div class="ies-content">
+            <div class="ies-topbar">
+                <div></div>
+                @auth
+                    @livewire('notificaciones-bell')
+                @endauth
+            </div>
             <main class="container-fluid py-4 px-4">
                 @yield('content')
             </main>
@@ -570,5 +805,6 @@
     </div>
 
     @livewireScripts
+    @stack('scripts')
 </body>
 </html>

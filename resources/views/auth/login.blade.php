@@ -33,10 +33,14 @@
             height: 84px;
             margin-bottom: .75rem;
         }
+        .login-brand .login-brand-title {
+            font-size: 1.3rem;
+            line-height: 1.3;
+        }
         .login-brand small {
             display: block;
             font-weight: 500;
-            font-size: .8rem;
+            font-size: 1.05rem;
             color: rgba(255,255,255,.7);
         }
         .card {
@@ -63,7 +67,7 @@
 <div class="container" style="max-width: 380px;">
     <div class="text-center mb-4 login-brand">
         <img src="{{ asset('images/logo-ies.png') }}" alt="Logo IES Nuevo Horizonte">
-        <div class="h4 mb-0">IES Nuevo Horizonte</div>
+        <div class="h4 mb-0 login-brand-title">INSTITUTO DE EDUCACION SUPERIOR "NUEVO HORIZONTE"</div>
         <small>Sistema de gestión de espacios y turnos</small>
     </div>
 

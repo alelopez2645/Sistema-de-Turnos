@@ -6,6 +6,8 @@ use App\Models\Turno;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\File;
 
 /**
  * Notifica por correo al docente cada vez que su turno se crea, modifica,
@@ -26,6 +28,14 @@ class TurnoNotification extends Notification
     public const EVENTO_RECHAZADO = 'rechazado';
     public const EVENTO_CANCELADO = 'cancelado';
 
+    /**
+     * Content-ID fijo del logo institucional embebido en el mail (ver
+     * toMail()). Al ir "adentro" del correo como adjunto en vez de cargarse
+     * desde una URL, se ve siempre — incluso probando en local, donde
+     * Gmail no puede llegar a http://127.0.0.1 o http://localhost.
+     */
+    protected const CID_LOGO = 'logo-ies@ies-nuevo-horizonte.local';
+
     public function __construct(
         public Turno $turno,
         public string $evento,
@@ -33,11 +43,49 @@ class TurnoNotification extends Notification
     }
 
     /**
+     * Punto único para disparar esta notificación. Si el envío de mail
+     * falla (SMTP mal configurado, servidor caído, etc.) el error queda
+     * registrado en los logs pero NO interrumpe la acción que se estaba
+     * haciendo (aprobar, cancelar, etc.) — esa ya se guardó en la base
+     * antes de llegar acá.
+     */
+    public static function enviar(object $notifiable, Turno $turno, string $evento): void
+    {
+        try {
+            $notifiable->notify(new self($turno, $evento));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    /**
      * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
+    }
+
+    /**
+     * Datos que se guardan para mostrar en la campana de notificaciones
+     * dentro de la app (no depende de que el mail llegue a destino).
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        $turno = $this->turno;
+
+        return [
+            'evento' => $this->evento,
+            'turno_id' => $turno->id,
+            'titulo' => $this->asunto(),
+            'mensaje' => $this->introduccion(),
+            'espacio' => $turno->espacio->nombre,
+            'fecha' => $turno->fecha->format('d/m/Y'),
+            'horario' => substr($turno->hora_inicio, 0, 5) . ' - ' . substr($turno->hora_fin, 0, 5),
+            'observaciones' => $turno->observaciones,
+        ];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -63,7 +111,18 @@ class TurnoNotification extends Notification
 
         return $mensaje
             ->line('Ante cualquier duda, comunicate con administración del instituto.')
-            ->salutation('IES Nuevo Horizonte — Sistema de Turnos');
+            ->salutation('IES Nuevo Horizonte — Sistema de Turnos')
+            ->withSymfonyMessage(function ($symfonyMessage) {
+                $logo = public_path('images/logo-ies-mail.png');
+
+                if (!is_file($logo)) {
+                    return;
+                }
+
+                $parte = (new DataPart(new File($logo), 'logo-ies.png', 'image/png'))->asInline();
+                $parte->setContentId(self::CID_LOGO);
+                $symfonyMessage->addPart($parte);
+            });
     }
 
     protected function asunto(): string

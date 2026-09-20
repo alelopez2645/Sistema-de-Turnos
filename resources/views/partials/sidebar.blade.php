@@ -11,7 +11,7 @@
             </a>
         @endif
 
-        @if ($ies_esDocente)
+        @if ($ies_esDocente || $ies_esAdmin)
             <a href="{{ route('dashboard') }}" class="ies-nav-link @if (request()->routeIs('dashboard')) active @endif">
                 Solicitar Turnos
             </a>
