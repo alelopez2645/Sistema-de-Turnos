@@ -3,19 +3,31 @@
         <div class="alert alert-info py-2 small">{{ $mensaje }}</div>
     @endif
 
-    <div class="mb-3" style="max-width: 240px;">
-        <label class="form-label small">Filtrar por estado</label>
-        <select class="form-select form-select-sm" wire:model.live="filtroEstado">
-            <option value="pendiente">Pendientes</option>
-            <option value="aprobado">Aprobados</option>
-            <option value="rechazado">Rechazados</option>
-            <option value="cancelado">Cancelados</option>
-            <option value="">Todos</option>
-        </select>
+    <div class="d-flex flex-wrap gap-3 mb-3">
+        <div style="min-width: 220px;">
+            <label class="form-label small">Filtrar por estado</label>
+            <select class="form-select form-select-sm" wire:model.live="filtroEstado">
+                <option value="pendiente">Pendientes</option>
+                <option value="aprobado">Aprobados</option>
+                <option value="rechazado">Rechazados</option>
+                <option value="cancelado">Cancelados</option>
+                <option value="">Todos</option>
+            </select>
+        </div>
+
+        <div style="min-width: 260px;">
+            <label class="form-label small">Filtrar por espacio o equipo</label>
+            <select class="form-select form-select-sm" wire:model.live="filtroEspacio">
+                <option value="">Todos</option>
+                @foreach ($espacios as $espacio)
+                    <option value="{{ $espacio->id }}">{{ $espacio->nombre }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
 
     @if ($turnos->isEmpty())
-        <p class="text-muted">No hay turnos con ese estado.</p>
+        <p class="text-muted">No hay turnos con esos filtros.</p>
     @else
         <div class="d-flex flex-column gap-2">
             @foreach ($turnos as $turno)

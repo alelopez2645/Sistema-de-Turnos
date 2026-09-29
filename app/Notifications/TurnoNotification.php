@@ -63,7 +63,10 @@ class TurnoNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        // 'database' va primero a propósito: Laravel envía los canales en
+        // orden y, si uno lanza excepción (p. ej. SMTP caído), corta y no
+        // llega a los siguientes. Así la campana funciona aunque el mail falle.
+        return ['database', 'mail'];
     }
 
     /**

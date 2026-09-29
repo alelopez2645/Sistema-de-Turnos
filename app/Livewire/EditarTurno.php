@@ -285,7 +285,7 @@ class EditarTurno extends Component
             'estado' => $volvioAPendiente ? EstadoTurno::PENDIENTE->value : $this->turno->estado->value,
         ]);
 
-        $this->turno->docente->notify(new TurnoNotification($this->turno->fresh(), TurnoNotification::EVENTO_MODIFICADO));
+        TurnoNotification::enviar($this->turno->docente, $this->turno->fresh(), TurnoNotification::EVENTO_MODIFICADO);
 
         $this->mensajeExito = $volvioAPendiente
             ? 'Turno modificado. Como estaba aprobado, vuelve a quedar pendiente de revisión por administración.'

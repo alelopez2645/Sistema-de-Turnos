@@ -604,7 +604,7 @@ class FormularioTurno extends Component
             'terminos_version' => config('reglas_uso.version'),
         ]);
 
-        auth()->user()->notify(new TurnoNotification($turno, TurnoNotification::EVENTO_CREADO));
+        TurnoNotification::enviar(auth()->user(), $turno, TurnoNotification::EVENTO_CREADO);
 
         $this->reset([
             'carrera_id', 'fecha', 'hora_inicio', 'hora_fin', 'motivo',

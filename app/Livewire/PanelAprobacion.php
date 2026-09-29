@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\EstadoTurno;
+use App\Models\Espacio;
 use App\Models\Turno;
 use App\Notifications\TurnoNotification;
 use Livewire\Component;
@@ -13,10 +14,16 @@ class PanelAprobacion extends Component
     use WithPagination;
 
     public string $filtroEstado = 'pendiente';
+    public string $filtroEspacio = '';
     public array $observacionesPorTurno = [];
     public ?string $mensaje = null;
 
     public function updatingFiltroEstado(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFiltroEspacio(): void
     {
         $this->resetPage();
     }
@@ -39,7 +46,7 @@ class PanelAprobacion extends Component
 
         $turno->update(['estado' => EstadoTurno::CANCELADO->value]);
 
-        $turno->docente->notify(new TurnoNotification($turno->fresh(), TurnoNotification::EVENTO_CANCELADO));
+        TurnoNotification::enviar($turno->docente, $turno->fresh(), TurnoNotification::EVENTO_CANCELADO);
 
         $this->mensaje = "Turno #{$turno->id} cancelado por administración.";
     }
@@ -55,7 +62,7 @@ class PanelAprobacion extends Component
             'observaciones' => $this->observacionesPorTurno[$turnoId] ?? $turno->observaciones,
         ]);
 
-        $turno->docente->notify(new TurnoNotification($turno->fresh(), $evento));
+        TurnoNotification::enviar($turno->docente, $turno->fresh(), $evento);
 
         $this->mensaje = "Turno #{$turno->id} marcado como {$estado->value}.";
     }
@@ -64,10 +71,13 @@ class PanelAprobacion extends Component
     {
         $turnos = Turno::with(['espacio', 'docente', 'carrera'])
             ->when($this->filtroEstado, fn ($q) => $q->where('estado', $this->filtroEstado))
+            ->when($this->filtroEspacio, fn ($q) => $q->where('espacio_id', $this->filtroEspacio))
             ->orderBy('fecha')
             ->orderBy('hora_inicio')
             ->paginate(10);
 
-        return view('livewire.panel-aprobacion', compact('turnos'));
+        $espacios = Espacio::orderBy('nombre')->get(['id', 'nombre']);
+
+        return view('livewire.panel-aprobacion', compact('turnos', 'espacios'));
     }
 }
